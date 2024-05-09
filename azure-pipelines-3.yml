@@ -13,7 +13,7 @@ stages:
       inputs:
         provider: 'azurerm'
         command: 'init'
-        backendServiceArm: 'yolo'
+        backendServiceArm: 'Freesub(8337a852-3759-476f-97d1-2350df1ae26b)'
         backendAzureRmResourceGroupName: 'tfvmex-resources'
         backendAzureRmStorageAccountName: 'ibrahimtech'
         backendAzureRmContainerName: 'ibrahim-tfstate'
@@ -30,15 +30,13 @@ stages:
         command: 'custom'
         customCommand: 'fmt'
         outputTo: 'console'
-        environmentServiceNameAzureRM: 'yolo'
+        environmentServiceNameAzureRM: 'Freesub(8337a852-3759-476f-97d1-2350df1ae26b)'
       
     - task: TerraformTaskV4@4
-      displayName: Tf plan
       inputs:
         provider: 'azurerm'
         command: 'plan'
-        commandOptions: '-out $(Build.SourcesDirectory)/tfplanfile'
-        environmentServiceNameAzureRM: 'yolo'
+        environmentServiceNameAzureRM: 'Freesub(8337a852-3759-476f-97d1-2350df1ae26b)'
       
     - task: ArchiveFiles@2
       displayName: Archive files
