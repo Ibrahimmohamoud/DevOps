@@ -1,53 +1,33 @@
-trigger: 
-- main
+name: Azure DevOps Pipeline
 
-stages:
-- stage: Build
-  jobs:
-  - job: Build
-    pool:
-      vmImage: 'ubuntu-latest'
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
     steps:
-    - task: TerraformTaskV4@4
-      displayName: Tf init
-      inputs:
-        provider: 'azurerm'
-        command: 'init'
-        backendServiceArm: 'Freesub(8337a852-3759-476f-97d1-2350df1ae26b)'
-        backendAzureRmResourceGroupName: 'tfvmex-resources'
-        backendAzureRmStorageAccountName: 'ibrahimtech'
-        backendAzureRmContainerName: 'ibrahim-tfstate'
-        backendAzureRmKey: 'prod.terraform.tfstate'
-    - task: TerraformTaskV4@4
-      displayName: Tf validate
-      inputs:
-        provider: 'azurerm'
-        command: 'validate'
-    - task: TerraformTaskV4@4
-      displayName: Tf fmt
-      inputs:
-        provider: 'azurerm'
-        command: 'custom'
-        customCommand: 'fmt'
-        outputTo: 'console'
-        environmentServiceNameAzureRM: 'Freesub(8337a852-3759-476f-97d1-2350df1ae26b)'
-      
-    - task: TerraformTaskV4@4
-      inputs:
-        provider: 'azurerm'
-        command: 'plan'
-        environmentServiceNameAzureRM: 'Freesub(8337a852-3759-476f-97d1-2350df1ae26b)'
-      
-    - task: ArchiveFiles@2
-      displayName: Archive files
-      inputs:
-        rootFolderOrFile: '$(Build.SourcesDirectory)/'
-        includeRootFolder: false
-        archiveType: 'zip'
-        archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
-        replaceExistingArchive: true
-    - task: PublishBuildArtifacts@1
-      inputs:
-        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-        ArtifactName: '$(Build.BuildId)-build'
-        publishLocation: 'Container'
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Tf init
+        run: |
+          terraform init -backend-config="provider=azurerm&command=init&backendServiceArm=Freesub(8337a852-3759-476f-97d1-2350df1ae26b)&backendAzureRmResourceGroupName=tfvmex-resources&backendAzureRmStorageAccountName=ibrahimtech&backendAzureRmContainerName=ibrahim-tfstate&backendAzureRmKey=prod.terraform.tfstate"
+      - name: Tf validate
+        run: |
+          terraform validate
+      - name: Tf fmt
+        run: |
+          terraform fmt
+      - name: Tf plan
+        run: |
+          terraform plan
+      - name: Archive files
+        run: |
+          zip -r $(Build.SourcesDirectory)/ $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip
+      - name: Publish build artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          path: $(Build.ArtifactStagingDirectory)
+          artifact-name: $(Build.BuildId)-build
